@@ -360,19 +360,46 @@
         // <!--在網頁載入完成後執行-->
         document.addEventListener('DOMContentLoaded', function () {
             fetchActivityDetail();
+
+        // 新增的部分：選擇圖片時觸發事件
+        const cover_el = document.getElementById('inputGroupFile04');
+        const cover_img = document.getElementById('activPic');
+
+        cover_el.addEventListener('change', function () {
+            const file = this.files[0];
+            if (file) {
+                cover_img.src = URL.createObjectURL(file);
+
+                const fileReader = new FileReader();
+                fileReader.onload = event => {
+                    cover = btoa(event.target.result);
+                };
+                fileReader.readAsBinaryString(file);
+            } else {
+                cover_img.src = "";
+
+            }
         });
+    });
+
 
         // <!--在提交審核按鈕被點擊時執行以下程式碼-->
         submitBtn.addEventListener('click', async function (event) {
-
+                event.preventDefault();
+                window.location.reload();
 
             // <!--構建要傳遞的資料-->
             const requestData = {
-                activPicImage: activPicImage,
+                activPic: cover,
                 activName: activNameInput.value,
                 activCon: activConTextarea.value,
                 activSta: activStaSelect.value
             };
+
+            if (cover) {
+            requestData.activPic = cover;
+            }
+
 
             try {
                 const response = await fetch(`http://localhost:8080/u-and-me/update/${activId}`, {
@@ -386,7 +413,7 @@
                 if (response.ok) {
                     const updatedActivityData = await response.json();
                     console.log('Activity updated successfully:', updatedActivityData);
-                    window.location.reload();
+
 
                 } else {
                     console.error('Failed to update activity.');
